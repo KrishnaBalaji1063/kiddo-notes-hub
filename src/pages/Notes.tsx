@@ -13,6 +13,7 @@ const Notes = () => {
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -28,49 +29,68 @@ const Notes = () => {
   }, [navigate]);
 
   const fetchNotes = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("notes")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) {
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error fetching notes",
+          description: error.message,
+        });
+        return;
+      }
+      setNotes(data || []);
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error fetching notes",
-        description: error.message,
+        description: "Failed to fetch notes. Please try again.",
       });
-      return;
     }
-    setNotes(data || []);
   };
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newNote.title || !newNote.content) return;
-
-    const { error } = await supabase.from("notes").insert([
-      {
-        title: newNote.title,
-        content: newNote.content,
-        user_id: user.id,
-      },
-    ]);
-
-    if (error) {
+    if (!newNote.title || !newNote.content) {
       toast({
         variant: "destructive",
-        title: "Error adding note",
-        description: error.message,
+        title: "Error",
+        description: "Please fill in both title and content",
       });
       return;
     }
 
-    setNewNote({ title: "", content: "" });
-    fetchNotes(user.id);
-    toast({
-      title: "Success!",
-      description: "Note added successfully",
-    });
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.from("notes").insert([
+        {
+          title: newNote.title,
+          content: newNote.content,
+          user_id: user.id,
+        },
+      ]);
+
+      if (error) throw error;
+
+      setNewNote({ title: "", content: "" });
+      toast({
+        title: "Success!",
+        description: "Note added successfully",
+      });
+      fetchNotes(user.id);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error adding note",
+        description: error.message || "Failed to add note",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -119,7 +139,9 @@ const Notes = () => {
                   onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
                 />
               </div>
-              <Button type="submit">Add Note</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Adding Note..." : "Add Note"}
+              </Button>
             </form>
           </Card>
 
