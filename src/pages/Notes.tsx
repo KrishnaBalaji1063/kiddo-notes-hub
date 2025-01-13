@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
 
@@ -22,6 +22,29 @@ const Notes = () => {
         navigate("/auth");
         return;
       }
+      
+      // Check if profile exists, if not create it
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{ id: user.id }]);
+          
+        if (profileError) {
+          toast({
+            variant: "destructive",
+            title: "Error creating profile",
+            description: profileError.message,
+          });
+          return;
+        }
+      }
+      
       setUser(user);
       fetchNotes(user.id);
     };
@@ -33,6 +56,7 @@ const Notes = () => {
       const { data, error } = await supabase
         .from("notes")
         .select("*")
+        .eq('user_id', userId)
         .order("created_at", { ascending: false });
 
       if (error) {
