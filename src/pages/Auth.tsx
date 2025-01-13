@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
 import type { AuthError } from "@supabase/supabase-js";
 
 const Auth = () => {
@@ -33,6 +34,23 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className="text-lg font-bold text-purple-600 hover:text-purple-700"
+                  href="/"
+                >
+                  KiddoNotes
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+      </nav>
+      
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
           <h1 className="text-2xl font-bold text-center mb-6 text-purple-600">Welcome to KiddoNotes!</h1>

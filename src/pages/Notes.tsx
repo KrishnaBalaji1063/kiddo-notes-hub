@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
 
 const Notes = () => {
   const navigate = useNavigate();
@@ -78,42 +79,61 @@ const Notes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-purple-600">My Notes</h1>
-          <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <NavigationMenu>
+            <NavigationMenuList className="flex justify-between items-center py-4">
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className="text-lg font-bold text-purple-600 hover:text-purple-700"
+                  href="/"
+                >
+                  KiddoNotes
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
+      </nav>
 
-        <Card className="p-6 mb-8">
-          <form onSubmit={handleAddNote} className="space-y-4">
-            <div>
-              <Input
-                placeholder="Note Title"
-                value={newNote.title}
-                onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                className="mb-2"
-              />
-              <Input
-                placeholder="Note Content"
-                value={newNote.content}
-                onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-              />
-            </div>
-            <Button type="submit">Add Note</Button>
-          </form>
-        </Card>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-purple-600 mb-8">My Notes</h1>
 
-        <div className="space-y-4">
-          {notes.map((note) => (
-            <Card key={note.id} className="p-4">
-              <h3 className="text-xl font-semibold mb-2">{note.title}</h3>
-              <p className="text-gray-600">{note.content}</p>
-              <div className="text-sm text-gray-400 mt-2">
-                {new Date(note.created_at).toLocaleString()}
+          <Card className="p-6 mb-8">
+            <form onSubmit={handleAddNote} className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Note Title"
+                  value={newNote.title}
+                  onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                  className="mb-2"
+                />
+                <Input
+                  placeholder="Note Content"
+                  value={newNote.content}
+                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                />
               </div>
-            </Card>
-          ))}
+              <Button type="submit">Add Note</Button>
+            </form>
+          </Card>
+
+          <div className="space-y-4">
+            {notes.map((note) => (
+              <Card key={note.id} className="p-4">
+                <h3 className="text-xl font-semibold mb-2">{note.title}</h3>
+                <p className="text-gray-600">{note.content}</p>
+                <div className="text-sm text-gray-400 mt-2">
+                  {new Date(note.created_at).toLocaleString()}
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>
