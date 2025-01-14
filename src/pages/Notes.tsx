@@ -247,7 +247,43 @@ const Notes = () => {
     navigate("/auth");
   };
 
-  // Memoize filtered notes for better performance
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      // First, delete the image from storage if it exists
+      const noteToDelete = notes.find(note => note.id === noteId);
+      if (noteToDelete?.image_url) {
+        const imagePath = noteToDelete.image_url.split('/').pop();
+        if (imagePath) {
+          await supabase.storage
+            .from('notes-images')
+            .remove([imagePath]);
+        }
+      }
+
+      // Then delete the note from the database
+      const { error } = await supabase
+        .from("notes")
+        .delete()
+        .eq('id', noteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success! 🎉",
+        description: "Your doodle has been removed!",
+      });
+      
+      // Update the local state to remove the deleted note
+      setNotes(notes.filter(note => note.id !== noteId));
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Oops! Couldn't remove the doodle",
+        description: error.message,
+      });
+    }
+  };
+
   const sortedNotes = useMemo(() => {
     return [...notes].sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -448,7 +484,7 @@ const Notes = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleEditNote(note)}
-                      className="rounded-full"
+                      className="rounded-full hover:bg-purple-100 transition-colors"
                     >
                       {editingNote === note.id ? (
                         <>
