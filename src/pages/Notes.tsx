@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
-import { Camera, Image, Edit2, Save, X } from "lucide-react";
+import { Smile, Star, PaintBucket, Camera, Image, Edit2, Save, Trash2 } from "lucide-react";
 
 interface Note {
   id: string;
@@ -247,22 +247,36 @@ const Notes = () => {
     navigate("/auth");
   };
 
+  // Memoize filtered notes for better performance
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [notes]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-blue-50">
+      <nav className="bg-white shadow-md rounded-b-xl">
         <div className="container mx-auto px-4">
           <NavigationMenu>
             <NavigationMenuList className="flex justify-between items-center py-4">
               <NavigationMenuItem>
                 <NavigationMenuLink
-                  className="text-lg font-bold text-purple-600 hover:text-purple-700"
+                  className="text-2xl font-bold text-purple-600 hover:text-purple-700 flex items-center gap-2"
                   href="/"
                 >
-                  KiddoNotes
+                  <Smile className="w-8 h-8" />
+                  <span className="font-comic">KiddoDoodle</span>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
+                <Button 
+                  onClick={handleSignOut} 
+                  variant="outline"
+                  className="rounded-full hover:bg-purple-100 transition-colors"
+                >
+                  Bye Bye! 👋
+                </Button>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
@@ -271,32 +285,37 @@ const Notes = () => {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-purple-600 mb-8">My Notes</h1>
+          <h1 className="text-4xl font-bold text-purple-600 mb-8 flex items-center gap-2">
+            <Star className="w-8 h-8 text-yellow-400" />
+            My Awesome Doodles!
+          </h1>
 
-          <Card className="p-6 mb-8">
+          <Card className="p-6 mb-8 rounded-2xl border-2 border-purple-200 shadow-lg bg-white/80 backdrop-blur-sm">
             <form onSubmit={handleAddNote} className="space-y-4">
               <div>
                 <Input
-                  placeholder="Note Title"
+                  placeholder="Give your doodle a fun name!"
                   value={newNote.title}
                   onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                  className="mb-2"
+                  className="mb-2 rounded-xl text-lg placeholder:text-purple-300"
                 />
                 <Input
-                  placeholder="Note Content"
+                  placeholder="Write your amazing thoughts here!"
                   value={newNote.content}
                   onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                  className="rounded-xl text-lg placeholder:text-purple-300"
                 />
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-3 flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
+                  className="rounded-full hover:bg-purple-100 transition-colors"
                 >
-                  <Image className="w-4 h-4 mr-2" />
-                  Upload Image
+                  <Image className="w-5 h-5 mr-2" />
+                  Add a Picture!
                 </Button>
                 <input
                   type="file"
@@ -310,18 +329,20 @@ const Notes = () => {
                   type="button"
                   variant="outline"
                   onClick={handleCameraCapture}
+                  className="rounded-full hover:bg-purple-100 transition-colors"
                 >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Take Photo
+                  <Camera className="w-5 h-5 mr-2" />
+                  Take a Photo!
                 </Button>
                 
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsDrawing(!isDrawing)}
+                  className="rounded-full hover:bg-purple-100 transition-colors"
                 >
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  {isDrawing ? "Hide Drawing" : "Draw"}
+                  <PaintBucket className="w-5 h-5 mr-2" />
+                  {isDrawing ? "Hide Drawing" : "Let's Draw!"}
                 </Button>
               </div>
 
@@ -330,27 +351,27 @@ const Notes = () => {
                   <img
                     src={URL.createObjectURL(selectedImage)}
                     alt="Selected"
-                    className="max-h-40 rounded"
+                    className="max-h-40 rounded-xl"
                   />
                   <Button
                     type="button"
                     variant="destructive"
                     size="sm"
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 rounded-full"
                     onClick={() => setSelectedImage(null)}
                   >
-                    <X className="w-4 h-4" />
+                    Remove
                   </Button>
                 </div>
               )}
 
               {isDrawing && (
-                <div className="border rounded p-2">
+                <div className="border-2 border-purple-200 rounded-xl p-2">
                   <canvas
                     ref={canvasRef}
                     width={400}
                     height={300}
-                    className="border rounded cursor-crosshair"
+                    className="rounded-lg cursor-crosshair"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
@@ -359,15 +380,19 @@ const Notes = () => {
                 </div>
               )}
 
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Adding Note..." : "Add Note"}
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full rounded-full bg-purple-600 hover:bg-purple-700 text-lg"
+              >
+                {isLoading ? "Creating Magic..." : "Save My Doodle! ✨"}
               </Button>
             </form>
           </Card>
 
           <div className="space-y-4">
-            {notes.map((note) => (
-              <Card key={note.id} className="p-4">
+            {sortedNotes.map((note) => (
+              <Card key={note.id} className="p-4 rounded-2xl border-2 border-purple-200 hover:border-purple-300 transition-colors">
                 {editingNote === note.id ? (
                   <div className="space-y-2">
                     <Input
@@ -378,6 +403,7 @@ const Notes = () => {
                         );
                         setNotes(updatedNotes);
                       }}
+                      className="rounded-xl"
                     />
                     <Input
                       value={note.content}
@@ -387,11 +413,12 @@ const Notes = () => {
                         );
                         setNotes(updatedNotes);
                       }}
+                      className="rounded-xl"
                     />
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-xl font-semibold mb-2">{note.title}</h3>
+                    <h3 className="text-xl font-semibold text-purple-600 mb-2">{note.title}</h3>
                     <p className="text-gray-600">{note.content}</p>
                   </>
                 )}
@@ -400,7 +427,7 @@ const Notes = () => {
                   <img
                     src={note.image_url}
                     alt="Note"
-                    className="mt-2 max-h-40 rounded"
+                    className="mt-2 max-h-40 rounded-xl"
                   />
                 )}
                 
@@ -408,31 +435,43 @@ const Notes = () => {
                   <img
                     src={note.drawing_data}
                     alt="Drawing"
-                    className="mt-2 max-h-40 rounded"
+                    className="mt-2 max-h-40 rounded-xl"
                   />
                 )}
 
-                <div className="flex justify-between items-center mt-2">
-                  <div className="text-sm text-gray-400">
-                    {new Date(note.created_at).toLocaleString()}
+                <div className="flex justify-between items-center mt-4">
+                  <div className="text-sm text-purple-400">
+                    Created: {new Date(note.created_at).toLocaleDateString()}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditNote(note)}
-                  >
-                    {editingNote === note.id ? (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save
-                      </>
-                    ) : (
-                      <>
-                        <Edit2 className="w-4 h-4 mr-2" />
-                        Edit
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditNote(note)}
+                      className="rounded-full"
+                    >
+                      {editingNote === note.id ? (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      ) : (
+                        <>
+                          <Edit2 className="w-4 h-4 mr-2" />
+                          Edit Doodle
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteNote(note.id)}
+                      className="rounded-full"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
