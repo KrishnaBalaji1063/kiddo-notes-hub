@@ -14,8 +14,12 @@ export type Database = {
           content: string
           created_at: string
           drawing_data: string | null
+          folder: string | null
           id: string
           image_url: string | null
+          is_collaborative: boolean | null
+          shared_with: string[] | null
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
@@ -24,8 +28,12 @@ export type Database = {
           content: string
           created_at?: string
           drawing_data?: string | null
+          folder?: string | null
           id?: string
           image_url?: string | null
+          is_collaborative?: boolean | null
+          shared_with?: string[] | null
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
@@ -34,8 +42,12 @@ export type Database = {
           content?: string
           created_at?: string
           drawing_data?: string | null
+          folder?: string | null
           id?: string
           image_url?: string | null
+          is_collaborative?: boolean | null
+          shared_with?: string[] | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -56,20 +68,73 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          nickname: string | null
+          theme_preference: Json | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          nickname?: string | null
+          theme_preference?: Json | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          nickname?: string | null
+          theme_preference?: Json | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -79,7 +144,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_type: "parent" | "child"
     }
     CompositeTypes: {
       [_ in never]: never
