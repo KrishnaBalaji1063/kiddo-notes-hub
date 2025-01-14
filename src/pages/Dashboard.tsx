@@ -1,130 +1,128 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Book, Calendar, ListTodo, Star, User } from "lucide-react";
+import { Book, Calendar, CheckSquare, Plus, Star } from "lucide-react";
 
 interface Profile {
   full_name: string;
   nickname: string;
-  user_type: "parent" | "child";
+  avatar_url: string | null;
 }
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     const getProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          navigate("/auth");
-          return;
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
 
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("full_name, nickname, user_type")
-          .eq("id", user.id)
-          .single();
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, nickname, avatar_url')
+        .eq('id', user.id)
+        .single();
 
-        if (error) throw error;
+      if (data) {
         setProfile(data);
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Error loading profile",
-          description: error.message,
-        });
       }
     };
 
     getProfile();
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const menuItems = [
     {
-      title: "My Notes",
-      icon: <Book className="w-8 h-8" />,
-      description: "Write, draw, and create!",
-      onClick: () => navigate("/notes"),
-      color: "bg-pink-100 text-pink-600",
+      title: "Notes",
+      icon: <Book className="w-6 h-6" />,
+      color: "bg-pink-100",
+      textColor: "text-pink-600",
+      onClick: () => navigate('/notes'),
     },
     {
       title: "Calendar",
-      icon: <Calendar className="w-8 h-8" />,
-      description: "Plan your activities",
-      onClick: () => navigate("/calendar"),
-      color: "bg-purple-100 text-purple-600",
+      icon: <Calendar className="w-6 h-6" />,
+      color: "bg-purple-100",
+      textColor: "text-purple-600",
+      onClick: () => navigate('/calendar'),
     },
     {
       title: "Tasks",
-      icon: <ListTodo className="w-8 h-8" />,
-      description: "Keep track of your to-dos",
-      onClick: () => navigate("/tasks"),
-      color: "bg-blue-100 text-blue-600",
+      icon: <CheckSquare className="w-6 h-6" />,
+      color: "bg-blue-100",
+      textColor: "text-blue-600",
+      onClick: () => navigate('/tasks'),
     },
     {
       title: "Recommendations",
-      icon: <Star className="w-8 h-8" />,
-      description: "Discover new activities",
-      onClick: () => navigate("/recommendations"),
-      color: "bg-yellow-100 text-yellow-600",
+      icon: <Star className="w-6 h-6" />,
+      color: "bg-yellow-100",
+      textColor: "text-yellow-600",
+      onClick: () => navigate('/recommendations'),
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-blue-50">
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-purple-600">K.I.D.D.O</h1>
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white p-4">
+      <div className="container mx-auto max-w-4xl">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            {profile?.avatar_url && (
+              <img
+                src={profile.avatar_url}
+                alt="Profile"
+                className="w-16 h-16 rounded-full object-cover border-2 border-purple-200"
+              />
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-purple-600">
+                Welcome, {profile?.nickname || "Friend"}! 👋
+              </h1>
+              <p className="text-gray-600">What would you like to do today?</p>
+            </div>
+          </div>
           <Button
-            variant="ghost"
-            className="flex items-center gap-2"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate('/notes/new')}
+            className="bg-purple-600 hover:bg-purple-700"
           >
-            <User className="w-5 h-5" />
-            <span>{profile?.nickname || "Profile"}</span>
+            <Plus className="w-4 h-4 mr-2" />
+            New Note
           </Button>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-purple-600 mb-2">
-              Welcome, {profile?.nickname || "Friend"}! 👋
-            </h2>
-            <p className="text-gray-600">What would you like to do today?</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {menuItems.map((item) => (
-              <Card
-                key={item.title}
-                className="p-6 cursor-pointer transform hover:scale-105 transition-transform duration-300"
-                onClick={item.onClick}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${item.color}`}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-600">{item.description}</p>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {menuItems.map((item) => (
+            <Card
+              key={item.title}
+              className="cursor-pointer transform hover:scale-105 transition-transform"
+              onClick={item.onClick}
+            >
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className={`${item.color} p-3 rounded-lg`}>
+                  {item.icon}
                 </div>
-              </Card>
-            ))}
-          </div>
+                <CardTitle className={`${item.textColor}`}>
+                  {item.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  {item.title === "Notes" && "Write and draw your thoughts!"}
+                  {item.title === "Calendar" && "Keep track of important dates!"}
+                  {item.title === "Tasks" && "Complete your daily missions!"}
+                  {item.title === "Recommendations" && "Discover new activities!"}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </main>
+      </div>
     </div>
   );
 };

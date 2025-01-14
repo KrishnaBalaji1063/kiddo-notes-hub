@@ -1,124 +1,175 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, User } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 
 const ProfileCreation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [nickname, setNickname] = useState("");
   const [isParent, setIsParent] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/auth");
-        return;
+      if (!user) throw new Error("No user found");
+
+      let avatarUrl = "";
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('profiles')
+          .upload(fileName, avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('profiles')
+          .getPublicUrl(fileName);
+        
+        avatarUrl = publicUrl;
       }
 
       const { error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({
-          full_name: name,
+          full_name: fullName,
           nickname,
-          user_type: isParent ? "parent" : "child",
+          avatar_url: avatarUrl || null,
+          user_type: isParent ? 'parent' : 'child'
         })
-        .eq("id", user.id);
+        .eq('id', user.id);
 
       if (error) throw error;
 
       toast({
-        title: "Profile created! 🎉",
-        description: "Welcome to K.I.D.D.O!",
+        title: "Profile created!",
+        description: "Welcome to K.I.D.D.O! 🎉",
       });
 
-      navigate("/dashboard");
-    } catch (error: any) {
+      navigate('/dashboard');
+    } catch (error) {
       toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
-        title: "Error creating profile",
-        description: error.message,
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-blue-50 py-16">
-      <div className="container max-w-md mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-purple-600 mb-2">Create Your Profile</h1>
-            <p className="text-gray-600">Let's make your K.I.D.D.O space special! ✨</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="w-24 h-24 mx-auto bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <Camera className="w-8 h-8 text-purple-600" />
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white p-4">
+      <div className="container max-w-md mx-auto pt-8">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl text-purple-600">
+              Create Your Profile! 🌟
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-32 h-32">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-purple-100 flex items-center justify-center">
+                    {avatarPreview ? (
+                      <img
+                        src={avatarPreview}
+                        alt="Avatar preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Camera className="w-12 h-12 text-purple-300" />
+                    )}
+                  </div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="avatar-upload"
+                  />
+                  <Label
+                    htmlFor="avatar-upload"
+                    className="absolute bottom-0 right-0 bg-purple-500 text-white p-2 rounded-full cursor-pointer hover:bg-purple-600 transition-colors"
+                  >
+                    <Camera className="w-4 h-4" />
+                  </Label>
+                </div>
               </div>
-              <Button variant="outline" className="text-sm">
-                Choose Profile Photo
-              </Button>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Your Name</Label>
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="mt-1"
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
                   required
                 />
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="nickname">Nickname</Label>
                 <Input
                   id="nickname"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                   placeholder="What should we call you?"
-                  className="mt-1"
                   required
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="user-type">I am a Parent</Label>
+                <Label htmlFor="userType">I am a parent</Label>
                 <Switch
-                  id="user-type"
+                  id="userType"
                   checked={isParent}
                   onCheckedChange={setIsParent}
                 />
               </div>
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating Profile..." : "Let's Begin! 🚀"}
-            </Button>
-          </form>
-        </div>
+              <Button
+                type="submit"
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Create Profile"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
