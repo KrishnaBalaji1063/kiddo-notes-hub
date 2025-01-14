@@ -27,9 +27,12 @@ const Notes = () => {
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isDrawingActive, setIsDrawingActive] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -43,6 +46,20 @@ const Notes = () => {
     };
     checkUser();
   }, [navigate]);
+
+  useEffect(() => {
+    if (canvasRef.current && isDrawing) {
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.strokeStyle = '#000000';
+        context.lineWidth = 2;
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        contextRef.current = context;
+      }
+    }
+  }, [isDrawing]);
 
   const fetchNotes = async (userId: string) => {
     try {
@@ -60,6 +77,44 @@ const Notes = () => {
         title: "Error fetching notes",
         description: error.message,
       });
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!contextRef.current) return;
+    setIsDrawingActive(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setLastPoint({ x, y });
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawingActive || !contextRef.current || !lastPoint) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    contextRef.current.lineTo(x, y);
+    contextRef.current.stroke();
+    setLastPoint({ x, y });
+  };
+
+  const stopDrawing = () => {
+    setIsDrawingActive(false);
+    setLastPoint(null);
+    if (contextRef.current) {
+      contextRef.current.closePath();
     }
   };
 
@@ -296,6 +351,10 @@ const Notes = () => {
                     width={400}
                     height={300}
                     className="border rounded cursor-crosshair"
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
                   />
                 </div>
               )}
