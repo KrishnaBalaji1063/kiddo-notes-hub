@@ -18,6 +18,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_collaborative: boolean | null
+          is_scheduled: boolean | null
+          schedule_date: string | null
           shared_with: string[] | null
           tags: string[] | null
           title: string
@@ -32,6 +34,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_collaborative?: boolean | null
+          is_scheduled?: boolean | null
+          schedule_date?: string | null
           shared_with?: string[] | null
           tags?: string[] | null
           title: string
@@ -46,6 +50,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_collaborative?: boolean | null
+          is_scheduled?: boolean | null
+          schedule_date?: string | null
           shared_with?: string[] | null
           tags?: string[] | null
           title?: string

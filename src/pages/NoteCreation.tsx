@@ -5,9 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Loader2, Tag as TagIcon } from "lucide-react";
+import { Camera, Calendar as CalendarIcon, Loader2, Tag as TagIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
 
 const NoteCreation = () => {
   const navigate = useNavigate();
@@ -20,6 +27,7 @@ const NoteCreation = () => {
   const [newTag, setNewTag] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [scheduleDate, setScheduleDate] = useState<Date>();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,6 +89,8 @@ const NoteCreation = () => {
           folder,
           tags,
           image_url: imageUrl || null,
+          schedule_date: scheduleDate?.toISOString() || null,
+          is_scheduled: !!scheduleDate,
         });
 
       if (error) throw error;
@@ -139,6 +149,31 @@ const NoteCreation = () => {
                   onChange={(e) => setFolder(e.target.value)}
                   placeholder="Folder name (e.g., School, Personal)"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Schedule (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal ${
+                        !scheduleDate && "text-muted-foreground"
+                      }`}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {scheduleDate ? format(scheduleDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={scheduleDate}
+                      onSelect={setScheduleDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
