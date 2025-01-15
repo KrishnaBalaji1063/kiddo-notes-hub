@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Edit3, Folder, Plus, Search, Tag, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Edit3, Folder, Plus, Search, Tag, Trash2 } from "lucide-react";
 import NoteSidebar from "@/components/NoteSidebar";
 
 interface Note {
@@ -98,6 +98,10 @@ const Notes = () => {
     fetchNotes();
   };
 
+  const handleEditNote = (noteId: string) => {
+    navigate(`/notes/edit/${noteId}`);
+  };
+
   const filteredNotes = notes.filter(note => {
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       note.content.toLowerCase().includes(searchTerm.toLowerCase());
@@ -110,7 +114,23 @@ const Notes = () => {
       <div className="flex-1 flex flex-col">
         <div className="p-4">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-purple-600">My Notes 📝</h1>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => window.history.back()}
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <h1 className="text-2xl font-bold text-purple-600">My Notes 📝</h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => window.history.forward()}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
             <Button
               onClick={() => navigate('/notes/new')}
               className="bg-purple-600 hover:bg-purple-700"
@@ -159,7 +179,7 @@ const Notes = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => navigate(`/notes/${note.id}`)}
+                      onClick={() => handleEditNote(note.id)}
                     >
                       <Edit3 className="w-4 h-4 text-gray-400" />
                     </Button>
@@ -195,6 +215,11 @@ const Notes = () => {
                       </div>
                     ))}
                   </div>
+                  {note.schedule_date && (
+                    <div className="mt-2 text-sm text-gray-500">
+                      Scheduled: {new Date(note.schedule_date).toLocaleDateString()}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Calendar as CalendarIcon, Loader2, Tag as TagIcon } from "lucide-react";
+import { Camera, Calendar as CalendarIcon, Loader2, Tag as TagIcon, Pencil } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -19,6 +19,7 @@ import { format } from "date-fns";
 const NoteCreation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams(); // For editing existing notes
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -28,6 +29,43 @@ const NoteCreation = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<Date>();
+  const [drawingMode, setDrawingMode] = useState(false);
+  const [drawingData, setDrawingData] = useState<string>("");
+
+  useEffect(() => {
+    if (id) {
+      fetchNote();
+    }
+  }, [id]);
+
+  const fetchNote = async () => {
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch note",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data) {
+      setTitle(data.title);
+      setContent(data.content);
+      setFolder(data.folder || 'main');
+      setTags(data.tags || []);
+      setImagePreview(data.image_url || '');
+      setDrawingData(data.drawing_data || '');
+      if (data.schedule_date) {
+        setScheduleDate(new Date(data.schedule_date));
+      }
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +101,7 @@ const NoteCreation = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      let imageUrl = "";
+      let imageUrl = imagePreview;
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${user.id}-${Math.random()}.${fileExt}`;
@@ -80,31 +118,45 @@ const NoteCreation = () => {
         imageUrl = publicUrl;
       }
 
-      const { error } = await supabase
-        .from('notes')
-        .insert({
-          user_id: user.id,
-          title,
-          content,
-          folder,
-          tags,
-          image_url: imageUrl || null,
-          schedule_date: scheduleDate?.toISOString() || null,
-          is_scheduled: !!scheduleDate,
-        });
+      const noteData = {
+        title,
+        content,
+        folder,
+        tags,
+        image_url: imageUrl || null,
+        drawing_data: drawingData,
+        schedule_date: scheduleDate?.toISOString() || null,
+        is_scheduled: !!scheduleDate,
+      };
 
-      if (error) throw error;
+      if (id) {
+        const { error } = await supabase
+          .from('notes')
+          .update(noteData)
+          .eq('id', id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('notes')
+          .insert({
+            ...noteData,
+            user_id: user.id,
+          });
+
+        if (error) throw error;
+      }
 
       toast({
-        title: "Note created!",
-        description: "Your note has been saved successfully! 🎉",
+        title: id ? "Note updated!" : "Note created!",
+        description: `Your note has been ${id ? 'updated' : 'saved'} successfully! 🎉`,
       });
 
       navigate('/notes');
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create note. Please try again.",
+        description: `Failed to ${id ? 'update' : 'create'} note. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -206,7 +258,7 @@ const NoteCreation = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image">Add Image</Label>
+                <Label>Media Options</Label>
                 <div className="flex items-center gap-4">
                   <Input
                     type="file"
@@ -222,6 +274,14 @@ const NoteCreation = () => {
                     <Camera className="w-4 h-4" />
                     Choose Image
                   </Label>
+                  <Button
+                    type="button"
+                    onClick={() => setDrawingMode(!drawingMode)}
+                    className="flex items-center gap-2 bg-purple-100 text-purple-600 hover:bg-purple-200"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    {drawingMode ? 'Hide Drawing' : 'Show Drawing'}
+                  </Button>
                   {imagePreview && (
                     <img
                       src={imagePreview}
@@ -231,6 +291,15 @@ const NoteCreation = () => {
                   )}
                 </div>
               </div>
+
+              {drawingMode && (
+                <div className="border rounded-lg p-4">
+                  {/* Add your drawing component here */}
+                  <div className="h-[300px] bg-gray-50 rounded-lg flex items-center justify-center">
+                    Drawing canvas will be implemented here
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-4">
                 <Button
@@ -249,7 +318,7 @@ const NoteCreation = () => {
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    "Create Note"
+                    id ? "Update Note" : "Create Note"
                   )}
                 </Button>
               </div>
