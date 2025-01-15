@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Canvas as FabricCanvas, Circle, Rect } from "fabric";
 import { Button } from "./ui/button";
-import { Pencil, Square, Circle as CircleIcon, Eraser, Undo, Trash2 } from "lucide-react";
+import { Pencil, Square, Circle as CircleIcon, Eraser, Trash2 } from "lucide-react";
 
 interface DrawingCanvasProps {
   onSave: (drawingData: string) => void;
@@ -21,8 +21,18 @@ export const DrawingCanvas = ({ onSave, initialData }: DrawingCanvasProps) => {
       width: 800,
       height: 400,
       backgroundColor: "#ffffff",
+      isDrawingMode: true,
     });
 
+    // Initialize the canvas first
+    canvas.renderAll();
+
+    // Then initialize the drawing brush
+    if (!canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+    }
+
+    // Now set the brush properties
     canvas.freeDrawingBrush.color = activeColor;
     canvas.freeDrawingBrush.width = 2;
 
@@ -40,7 +50,7 @@ export const DrawingCanvas = ({ onSave, initialData }: DrawingCanvasProps) => {
   }, [initialData]);
 
   useEffect(() => {
-    if (!fabricCanvas) return;
+    if (!fabricCanvas || !fabricCanvas.freeDrawingBrush) return;
 
     fabricCanvas.isDrawingMode = activeTool === "draw" || activeTool === "eraser";
     
