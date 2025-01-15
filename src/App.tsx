@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Notes from "./pages/Notes";
 import ProfileCreation from "./pages/ProfileCreation";
-import Dashboard from "./pages/Dashboard";
 import NoteCreation from "./pages/NoteCreation";
 
 const queryClient = new QueryClient();
@@ -24,7 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<ProfileCreation />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Navigate to="/notes" replace />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/notes/new" element={<NoteCreation />} />
             <Route path="*" element={<Navigate to="/" replace />} />

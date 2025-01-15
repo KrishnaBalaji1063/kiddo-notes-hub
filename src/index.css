@@ -92,10 +92,29 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border cursor-default;
   }
 
   body {
     @apply bg-background text-foreground;
   }
+
+  button, a, [role="button"] {
+    @apply cursor-pointer hover:scale-105 transition-transform;
+  }
+
+  input, textarea {
+    @apply cursor-text;
+  }
+}
+
+/* Y2K-inspired animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
