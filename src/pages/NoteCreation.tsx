@@ -8,19 +8,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Calendar as CalendarIcon, Loader2, Tag as TagIcon, Pencil, X } from "lucide-react";
+import { Camera, Calendar as CalendarIcon, Loader2, Tag as TagIcon, X } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { DrawingCanvas } from "@/components/DrawingCanvas";
 
 const NoteCreation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { id } = useParams(); // For editing existing notes
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -30,8 +29,6 @@ const NoteCreation = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [scheduleDate, setScheduleDate] = useState<Date>();
-  const [drawingMode, setDrawingMode] = useState(false);
-  const [drawingData, setDrawingData] = useState<string>("");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -121,7 +118,6 @@ const NoteCreation = () => {
       setFolder(data.folder || 'main');
       setTags(data.tags || []);
       setImagePreview(data.image_url || '');
-      setDrawingData(data.drawing_data || '');
       if (data.schedule_date) {
         setScheduleDate(new Date(data.schedule_date));
       }
@@ -185,7 +181,6 @@ const NoteCreation = () => {
         folder,
         tags,
         image_url: imageUrl || null,
-        drawing_data: drawingData,
         schedule_date: scheduleDate?.toISOString() || null,
         is_scheduled: !!scheduleDate,
       };
@@ -383,14 +378,6 @@ const NoteCreation = () => {
                   </div>
                 </div>
               )}
-
-              <div className="space-y-2">
-                <Label>Drawing</Label>
-                <DrawingCanvas
-                  onSave={setDrawingData}
-                  initialData={drawingData}
-                />
-              </div>
 
               <div className="flex gap-4">
                 <Button
