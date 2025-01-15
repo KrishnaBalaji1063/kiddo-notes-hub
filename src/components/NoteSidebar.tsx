@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Calendar as CalendarIcon, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) => void }) => {
   const navigate = useNavigate();
@@ -44,9 +45,12 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
           </Avatar>
           <span className="text-sm font-medium">{profile?.full_name}</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={handleLogout}>
-          <LogOut className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       <Card>
