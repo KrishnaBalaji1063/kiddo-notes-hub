@@ -32,22 +32,22 @@ const Notes = () => {
     {
       title: "Calendar",
       icon: <Calendar className="w-6 h-6" />,
-      color: "bg-purple-100 text-purple-600",
-      iconBg: "bg-purple-50",
+      color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300",
+      iconBg: "bg-purple-50 dark:bg-purple-800/50",
       onClick: () => setSelectedDate(new Date()),
     },
     {
       title: "Tasks",
       icon: <CheckSquare className="w-6 h-6" />,
-      color: "bg-blue-100 text-blue-600",
-      iconBg: "bg-blue-50",
+      color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300",
+      iconBg: "bg-blue-50 dark:bg-blue-800/50",
       onClick: () => navigate('/tasks'),
     },
     {
       title: "Recommendations",
       icon: <Star className="w-6 h-6" />,
-      color: "bg-yellow-100 text-yellow-600",
-      iconBg: "bg-yellow-50",
+      color: "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300",
+      iconBg: "bg-yellow-50 dark:bg-yellow-800/50",
       onClick: () => toast({
         title: "Coming Soon",
         description: "This feature will be available soon!",
@@ -138,7 +138,7 @@ const Notes = () => {
 
   return (
     <div className="flex h-screen bg-gradient-to-b from-purple-50/50 via-pink-50/50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="flex-1 flex flex-col p-6">
+      <div className="flex-1 flex flex-col p-6 overflow-hidden">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Button
@@ -170,20 +170,20 @@ const Notes = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {menuItems.map((item) => (
             <Card
               key={item.title}
-              className="cursor-pointer transform hover:scale-105 transition-transform hover:shadow-xl bg-white/50 backdrop-blur-sm"
+              className="cursor-pointer transform hover:scale-105 transition-transform hover:shadow-xl bg-white/50 backdrop-blur-sm dark:bg-gray-800/50"
               onClick={item.onClick}
             >
-              <CardHeader className="flex flex-row items-center gap-4">
+              <CardHeader className="flex flex-row items-center gap-4 p-4">
                 <div className={`${item.iconBg} p-3 rounded-xl`}>
                   <div className={`${item.color} p-2 rounded-lg`}>
                     {item.icon}
                   </div>
                 </div>
-                <CardTitle className={item.color.split(' ')[1]}>
+                <CardTitle className={`text-lg ${item.color.split(' ')[1]}`}>
                   {item.title}
                 </CardTitle>
               </CardHeader>
@@ -198,16 +198,16 @@ const Notes = () => {
               placeholder="Search notes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm"
+              className="pl-10 hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm dark:bg-gray-800/50"
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
             {folders.map((folder) => (
               <Button
                 key={folder}
                 variant={selectedFolder === folder ? "default" : "outline"}
                 onClick={() => setSelectedFolder(selectedFolder === folder ? null : folder)}
-                className="gap-2 hover:scale-105 transition-transform whitespace-nowrap bg-white/50 backdrop-blur-sm"
+                className="gap-2 hover:scale-105 transition-transform whitespace-nowrap bg-white/50 backdrop-blur-sm dark:bg-gray-800/50"
               >
                 <Folder className="w-4 h-4" />
                 {folder}
@@ -216,13 +216,13 @@ const Notes = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
           {filteredNotes.map((note) => (
             <Card
               key={note.id}
-              className="cursor-pointer transform hover:scale-105 transition-transform hover:shadow-xl bg-white/50 backdrop-blur-sm"
+              className="cursor-pointer transform hover:scale-105 transition-transform hover:shadow-xl bg-white/50 backdrop-blur-sm dark:bg-gray-800/50"
             >
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between p-4">
                 <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   {note.title}
                 </CardTitle>
@@ -248,7 +248,7 @@ const Notes = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 pt-0">
                 <p className="text-gray-600 dark:text-gray-300 line-clamp-2">{note.content}</p>
                 {note.image_url && (
                   <img
