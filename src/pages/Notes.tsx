@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ArrowRight, CalendarDays, CheckSquare, Edit3, Folder, Plus, Search, Star, Tag, Trash2 } from "lucide-react";
 import NoteSidebar from "@/components/NoteSidebar";
+import CalendarModal from "@/components/CalendarModal";
 
 interface Note {
   id: string;
@@ -27,33 +28,43 @@ const Notes = () => {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [folders, setFolders] = useState<string[]>([]);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [starredNotes, setStarredNotes] = useState<Set<string>>(new Set());
 
   const menuItems = [
     {
-      title: "Calendar",
       icon: <CalendarDays className="w-6 h-6" />,
       color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300",
       iconBg: "bg-purple-50 dark:bg-purple-800/50",
-      onClick: () => setSelectedDate(new Date()),
-      showTitle: true,
+      onClick: () => setIsCalendarOpen(true),
+      showTitle: false,
     },
     {
-      title: "Tasks",
       icon: <CheckSquare className="w-6 h-6" />,
       color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300",
       iconBg: "bg-blue-50 dark:bg-blue-800/50",
-      onClick: () => navigate('/tasks'),
-      showTitle: true,
+      onClick: () => navigate('/tasks/new'),
+      showTitle: false,
     },
     {
-      title: "Recommendations",
       icon: <Star className="w-6 h-6" />,
       color: "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300",
       iconBg: "bg-yellow-50 dark:bg-yellow-800/50",
-      onClick: () => toast({
-        title: "Coming Soon",
-        description: "This feature will be available soon!",
-      }),
+      onClick: () => {
+        const starredNotesList = notes.filter(note => starredNotes.has(note.id));
+        if (starredNotesList.length > 0) {
+          setNotes(starredNotesList);
+          toast({
+            title: "Showing starred notes",
+            description: `Found ${starredNotesList.length} starred notes`,
+          });
+        } else {
+          toast({
+            title: "No starred notes",
+            description: "Star some notes to see them here!",
+          });
+        }
+      },
       showTitle: false,
     },
   ];
@@ -132,6 +143,16 @@ const Notes = () => {
     navigate(`/notes/edit/${noteId}`);
   };
 
+  const toggleStarred = (noteId: string) => {
+    const newStarredNotes = new Set(starredNotes);
+    if (newStarredNotes.has(noteId)) {
+      newStarredNotes.delete(noteId);
+    } else {
+      newStarredNotes.add(noteId);
+    }
+    setStarredNotes(newStarredNotes);
+  };
+
   const filteredNotes = notes.filter(note => {
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       note.content.toLowerCase().includes(searchTerm.toLowerCase());
@@ -174,23 +195,18 @@ const Notes = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {menuItems.map((item) => (
+          {menuItems.map((item, index) => (
             <Card
-              key={item.title}
+              key={index}
               className="cursor-pointer transform hover:scale-105 transition-transform hover:shadow-xl bg-white/50 backdrop-blur-sm dark:bg-gray-800/50"
               onClick={item.onClick}
             >
-              <CardHeader className="flex flex-row items-center gap-4 p-4">
+              <CardHeader className="flex flex-row items-center justify-center p-4">
                 <div className={`${item.iconBg} p-3 rounded-xl`}>
                   <div className={`${item.color} p-2 rounded-lg`}>
                     {item.icon}
                   </div>
                 </div>
-                {item.showTitle && (
-                  <CardTitle className={`text-lg ${item.color.split(' ')[1]}`}>
-                    {item.title}
-                  </CardTitle>
-                )}
               </CardHeader>
             </Card>
           ))}
@@ -232,6 +248,20 @@ const Notes = () => {
                   {note.title}
                 </CardTitle>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleStarred(note.id)}
+                    className="hover:scale-110 transition-transform"
+                  >
+                    <Star
+                      className={`w-4 h-4 ${
+                        starredNotes.has(note.id)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-400"
+                      }`}
+                    />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -284,6 +314,11 @@ const Notes = () => {
         </div>
       </div>
       <NoteSidebar onDateSelect={setSelectedDate} />
+      <CalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        onDateSelect={setSelectedDate}
+      />
     </div>
   );
 };
