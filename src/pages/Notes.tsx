@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, ArrowRight, Calendar, CheckSquare, Edit3, Folder, Plus, Search, Star, Tag, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckSquare, Edit3, Folder, Plus, Search, Star, Tag, Trash2 } from "lucide-react";
 import NoteSidebar from "@/components/NoteSidebar";
 
 interface Note {
@@ -31,10 +31,11 @@ const Notes = () => {
   const menuItems = [
     {
       title: "Calendar",
-      icon: <Calendar className="w-6 h-6" />,
+      icon: <CalendarDays className="w-6 h-6" />,
       color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300",
       iconBg: "bg-purple-50 dark:bg-purple-800/50",
       onClick: () => setSelectedDate(new Date()),
+      showTitle: true,
     },
     {
       title: "Tasks",
@@ -42,6 +43,7 @@ const Notes = () => {
       color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300",
       iconBg: "bg-blue-50 dark:bg-blue-800/50",
       onClick: () => navigate('/tasks'),
+      showTitle: true,
     },
     {
       title: "Recommendations",
@@ -52,6 +54,7 @@ const Notes = () => {
         title: "Coming Soon",
         description: "This feature will be available soon!",
       }),
+      showTitle: false,
     },
   ];
 
@@ -183,9 +186,11 @@ const Notes = () => {
                     {item.icon}
                   </div>
                 </div>
-                <CardTitle className={`text-lg ${item.color.split(' ')[1]}`}>
-                  {item.title}
-                </CardTitle>
+                {item.showTitle && (
+                  <CardTitle className={`text-lg ${item.color.split(' ')[1]}`}>
+                    {item.title}
+                  </CardTitle>
+                )}
               </CardHeader>
             </Card>
           ))}
