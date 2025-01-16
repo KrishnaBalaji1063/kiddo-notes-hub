@@ -30,6 +30,7 @@ const Notes = () => {
   const [folders, setFolders] = useState<string[]>([]);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [starredNotes, setStarredNotes] = useState<Set<string>>(new Set());
+  const [showingStarred, setShowingStarred] = useState(false);
 
   const menuItems = [
     {
@@ -43,7 +44,7 @@ const Notes = () => {
       icon: <CheckSquare className="w-6 h-6" />,
       color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300",
       iconBg: "bg-blue-50 dark:bg-blue-800/50",
-      onClick: () => navigate('/tasks/new'),
+      onClick: () => navigate('/tasks'),
       showTitle: false,
     },
     {
@@ -51,18 +52,23 @@ const Notes = () => {
       color: "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300",
       iconBg: "bg-yellow-50 dark:bg-yellow-800/50",
       onClick: () => {
-        const starredNotesList = notes.filter(note => starredNotes.has(note.id));
-        if (starredNotesList.length > 0) {
-          setNotes(starredNotesList);
-          toast({
-            title: "Showing starred notes",
-            description: `Found ${starredNotesList.length} starred notes`,
-          });
+        setShowingStarred(!showingStarred);
+        if (!showingStarred) {
+          const starredNotesList = notes.filter(note => starredNotes.has(note.id));
+          if (starredNotesList.length > 0) {
+            setNotes(starredNotesList);
+            toast({
+              title: "Showing starred notes",
+              description: `Found ${starredNotesList.length} starred notes`,
+            });
+          } else {
+            toast({
+              title: "No starred notes",
+              description: "Star some notes to see them here!",
+            });
+          }
         } else {
-          toast({
-            title: "No starred notes",
-            description: "Star some notes to see them here!",
-          });
+          fetchNotes();
         }
       },
       showTitle: false,

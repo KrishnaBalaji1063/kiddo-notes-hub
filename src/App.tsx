@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Notes from "./pages/Notes";
 import ProfileCreation from "./pages/ProfileCreation";
 import NoteCreation from "./pages/NoteCreation";
+import TaskCreation from "./pages/TaskCreation";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/dashboard" element={<Navigate to="/notes" replace />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/notes/new" element={<NoteCreation />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/tasks/new" element={<TaskCreation />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
