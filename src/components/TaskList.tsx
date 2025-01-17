@@ -13,16 +13,15 @@ interface Task {
   due_date: string | null;
   status: string | null;
   priority: string | null;
+  is_starred: boolean;
 }
 
 interface TaskListProps {
   tasks: Task[];
   onTaskUpdate: () => void;
-  starredTasks: Set<string>;
-  onStarToggle: (taskId: string) => void;
 }
 
-const TaskList = ({ tasks, onTaskUpdate, starredTasks, onStarToggle }: TaskListProps) => {
+const TaskList = ({ tasks, onTaskUpdate }: TaskListProps) => {
   const { toast } = useToast();
 
   const handleDeleteTask = async (taskId: string) => {
@@ -48,6 +47,24 @@ const TaskList = ({ tasks, onTaskUpdate, starredTasks, onStarToggle }: TaskListP
     onTaskUpdate();
   };
 
+  const handleStarTask = async (taskId: string, currentStarred: boolean) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ is_starred: !currentStarred })
+      .eq('id', taskId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update task",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onTaskUpdate();
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {tasks.map((task) => (
@@ -60,12 +77,12 @@ const TaskList = ({ tasks, onTaskUpdate, starredTasks, onStarToggle }: TaskListP
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => onStarToggle(task.id)}
+                onClick={() => handleStarTask(task.id, task.is_starred)}
                 className="hover:scale-110 transition-transform"
               >
                 <Star
                   className={`w-4 h-4 ${
-                    starredTasks.has(task.id)
+                    task.is_starred
                       ? "text-yellow-400 fill-yellow-400"
                       : "text-gray-400"
                   }`}

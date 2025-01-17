@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { UserProfile } from "./sidebar/UserProfile";
 import { CalendarCard } from "./sidebar/CalendarCard";
 import { TasksList } from "./sidebar/TasksList";
+import { StarredItems } from "./StarredItems";
 import { Profile } from "@/types/profile";
 
 const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) => void }) => {
@@ -44,7 +45,6 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
       
       if (error) throw error;
 
-      // Ensure theme_preference has the correct shape
       const formattedProfile: Profile = {
         ...data,
         theme_preference: data.theme_preference ? {
@@ -82,6 +82,44 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
     enabled: !!profile
   });
 
+  const { data: starredItems } = useQuery({
+    queryKey: ['starred-items'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+      
+      const [notesResponse, tasksResponse] = await Promise.all([
+        supabase
+          .from('notes')
+          .select('id, title, created_at')
+          .eq('user_id', user.id)
+          .eq('is_starred', true)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('tasks')
+          .select('id, title, created_at, due_date')
+          .eq('user_id', user.id)
+          .eq('is_starred', true)
+          .order('created_at', { ascending: false })
+      ]);
+
+      const notes = (notesResponse.data || []).map(note => ({
+        ...note,
+        type: 'note' as const
+      }));
+
+      const tasks = (tasksResponse.data || []).map(task => ({
+        ...task,
+        type: 'task' as const
+      }));
+
+      return [...notes, ...tasks].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    },
+    enabled: !!profile
+  });
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -98,6 +136,7 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
     <div className="w-80 border-l bg-sidebar-background p-4 space-y-4">
       <UserProfile profile={profile} onLogout={handleLogout} />
       <CalendarCard onDateSelect={onDateSelect} />
+      <StarredItems items={starredItems || []} />
       <TasksList tasks={tasks} />
     </div>
   );
