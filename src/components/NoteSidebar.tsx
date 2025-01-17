@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { UserProfile } from "./sidebar/UserProfile";
 import { CalendarCard } from "./sidebar/CalendarCard";
 import { TasksList } from "./sidebar/TasksList";
+import { Profile } from "@/types/profile";
 
 const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) => void }) => {
   const navigate = useNavigate();
@@ -42,7 +43,17 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
         .single();
       
       if (error) throw error;
-      return data;
+
+      // Ensure theme_preference has the correct shape
+      const formattedProfile: Profile = {
+        ...data,
+        theme_preference: data.theme_preference ? {
+          color: (data.theme_preference as any).color || 'purple',
+          font_size: (data.theme_preference as any).font_size || 'medium'
+        } : null
+      };
+      
+      return formattedProfile;
     },
     retry: false,
     meta: {
