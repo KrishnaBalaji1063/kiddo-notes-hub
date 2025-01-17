@@ -8,11 +8,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ThemeToggle } from "./ThemeToggle";
 import { format } from "date-fns";
+import { useEffect } from "react";
 
 const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) => void }) => {
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
+  // Check auth state on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+      }
+    };
+    checkAuth();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate('/auth');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  const { data: profile, isError: profileError } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -26,6 +49,10 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
       
       if (error) throw error;
       return data;
+    },
+    retry: false,
+    onError: () => {
+      navigate('/auth');
     }
   });
 
@@ -44,13 +71,23 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!profile // Only fetch tasks if profile exists
   });
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/auth');
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Force navigation to auth page even if signOut fails
+      navigate('/auth');
+    }
   };
+
+  // If there's a profile error, don't render the sidebar
+  if (profileError) return null;
 
   return (
     <div className="w-80 border-l bg-sidebar-background p-4 space-y-4">
