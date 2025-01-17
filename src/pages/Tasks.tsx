@@ -10,7 +10,6 @@ const Tasks = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [tasks, setTasks] = useState([]);
-  const [starredTasks, setStarredTasks] = useState<Set<string>>(new Set());
 
   const fetchTasks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -43,16 +42,6 @@ const Tasks = () => {
     fetchTasks();
   }, [navigate, toast]);
 
-  const toggleStarred = (taskId: string) => {
-    const newStarredTasks = new Set(starredTasks);
-    if (newStarredTasks.has(taskId)) {
-      newStarredTasks.delete(taskId);
-    } else {
-      newStarredTasks.add(taskId);
-    }
-    setStarredTasks(newStarredTasks);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
       <div className="container mx-auto">
@@ -82,8 +71,6 @@ const Tasks = () => {
         <TaskList
           tasks={tasks}
           onTaskUpdate={fetchTasks}
-          starredTasks={starredTasks}
-          onStarToggle={toggleStarred}
         />
       </div>
     </div>
