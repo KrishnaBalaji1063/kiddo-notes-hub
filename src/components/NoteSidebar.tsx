@@ -51,8 +51,10 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
       return data;
     },
     retry: false,
-    onError: () => {
-      navigate('/auth');
+    meta: {
+      onError: () => {
+        navigate('/auth');
+      }
     }
   });
 
