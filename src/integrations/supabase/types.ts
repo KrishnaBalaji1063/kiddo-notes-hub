@@ -19,6 +19,7 @@ export type Database = {
           image_url: string | null
           is_collaborative: boolean | null
           is_scheduled: boolean | null
+          is_starred: boolean | null
           schedule_date: string | null
           shared_with: string[] | null
           tags: string[] | null
@@ -35,6 +36,7 @@ export type Database = {
           image_url?: string | null
           is_collaborative?: boolean | null
           is_scheduled?: boolean | null
+          is_starred?: boolean | null
           schedule_date?: string | null
           shared_with?: string[] | null
           tags?: string[] | null
@@ -51,6 +53,7 @@ export type Database = {
           image_url?: string | null
           is_collaborative?: boolean | null
           is_scheduled?: boolean | null
+          is_starred?: boolean | null
           schedule_date?: string | null
           shared_with?: string[] | null
           tags?: string[] | null
@@ -104,6 +107,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          is_starred: boolean | null
           priority: string | null
           status: string | null
           title: string
@@ -115,6 +119,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_starred?: boolean | null
           priority?: string | null
           status?: string | null
           title: string
@@ -126,6 +131,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_starred?: boolean | null
           priority?: string | null
           status?: string | null
           title?: string
