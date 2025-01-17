@@ -7,6 +7,7 @@ import { Calendar as CalendarIcon, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ThemeToggle } from "./ThemeToggle";
+import { format } from "date-fns";
 
 const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) => void }) => {
   const navigate = useNavigate();
@@ -22,6 +23,24 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
         .select('*')
         .eq('id', user.id)
         .single();
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: tasks } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('due_date', { ascending: true })
+        .limit(5);
       
       if (error) throw error;
       return data;
@@ -91,11 +110,28 @@ const NoteSidebar = ({ onDateSelect }: { onDateSelect: (date: Date | undefined) 
 
       <Card className="bg-white/50 backdrop-blur-sm dark:bg-gray-800/50 border-none shadow-lg">
         <CardHeader>
-          <CardTitle className="text-sm">Upcoming Tasks</CardTitle>
+          <CardTitle className="text-sm">Tasks To Do</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">No upcoming tasks</p>
+            {tasks && tasks.length > 0 ? (
+              tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 hover:bg-purple-50 dark:hover:bg-purple-800/50 transition-colors cursor-pointer"
+                  onClick={() => navigate('/tasks')}
+                >
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{task.title}</p>
+                  {task.due_date && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Due: {format(new Date(task.due_date), "PPP")}
+                    </p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No tasks to do</p>
+            )}
           </div>
         </CardContent>
       </Card>
