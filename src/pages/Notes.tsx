@@ -51,26 +51,7 @@ const Notes = () => {
       icon: <Star className="w-6 h-6" />,
       color: "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300",
       iconBg: "bg-yellow-50 dark:bg-yellow-800/50",
-      onClick: () => {
-        setShowingStarred(!showingStarred);
-        if (!showingStarred) {
-          const starredNotesList = notes.filter(note => starredNotes.has(note.id));
-          if (starredNotesList.length > 0) {
-            setNotes(starredNotesList);
-            toast({
-              title: "Showing starred notes",
-              description: `Found ${starredNotesList.length} starred notes`,
-            });
-          } else {
-            toast({
-              title: "No starred notes",
-              description: "Star some notes to see them here!",
-            });
-          }
-        } else {
-          fetchNotes();
-        }
-      },
+      onClick: () => navigate('/starred'),
       showTitle: false,
     },
   ];
